@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tracker Koni</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f7f7f5;--bg3:#f0efe9;
+  --text:#1a1a1a;--text2:#6b6b6b;--text3:#999;
+  --border:#e0dfd8;--border2:#c8c7c0;
+  --green:#2C5F2E;--green-light:#639922;--green-pale:#EAF3DE;
+  --radius:8px;--radius-lg:12px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
+    --text:#f0efe9;--text2:#a0a098;--text3:#6b6b6b;
+    --border:#3a3a36;--border2:#4a4a46;
+  }
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
+.container{max-width:1100px;margin:0 auto;padding:1.5rem}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;background:var(--bg);border-radius:var(--radius-lg);padding:1rem 1.25rem;border:0.5px solid var(--border)}
+.topbar h1{font-size:18px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.topbar h1 i{color:var(--green-light);font-size:22px}
+.tabs{display:flex;gap:4px;background:var(--bg2);padding:4px;border-radius:var(--radius)}
+.tab{padding:6px 16px;border-radius:6px;border:none;background:transparent;font-size:13px;font-weight:400;color:var(--text2);cursor:pointer;transition:all .15s}
+.tab.active{background:var(--bg);color:var(--text);font-weight:500;border:0.5px solid var(--border)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem}
+@media(max-width:600px){.metrics{grid-template-columns:repeat(2,1fr)}}
+.metric{background:var(--bg);border-radius:var(--radius);padding:1rem;border:0.5px solid var(--border)}
+.metric-label{font-size:12px;color:var(--text2);margin-bottom:6px}
+.metric-value{font-size:22px;font-weight:600;color:var(--text)}
+.metric-value.green{color:var(--green-light)}
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--bg);border-radius:var(--radius-lg);border:0.5px solid var(--border);padding:1.25rem;margin-bottom:1rem}
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+input,select,textarea{font-family:inherit;font-size:13px;padding:7px 10px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg);color:var(--text);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--green-light);box-shadow:0 0 0 2px rgba(99,153,34,.15)}
+.toolbar input{flex:1;min-width:160px;height:34px}
+.toolbar select{height:34px;min-width:150px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:0 14px;height:34px;border-radius:var(--radius);border:0.5px solid var(--border2);background:var(--bg);color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .15s}
+.btn:hover{background:var(--bg2)}
+.btn.primary{background:var(--green);color:#fff;border-color:var(--green)}
+.btn.primary:hover{background:#3B6D11}
+.btn i{font-size:15px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 10px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);border-bottom:0.5px solid var(--border);white-space:nowrap}
+td{padding:9px 10px;border-bottom:0.5px solid var(--border);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
+tr:hover td{background:var(--bg2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500}
+.badge-vet{background:#E6F1FB;color:#185FA5}
+.badge-farrier{background:#FAEEDA;color:#854F0B}
+.badge-feed{background:#EAF3DE;color:#3B6D11}
+.badge-high{background:#FCEBEB;color:#A32D2D}
+.badge-med{background:#FAEEDA;color:#854F0B}
+.badge-low{background:#EAF3DE;color:#3B6D11}
+.amount{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg);border-radius:var(--radius-lg);border:0.5px solid var(--border);padding:1.5rem;width:480px;max-width:96vw;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:16px;font-weight:600;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center}
+.form-row{margin-bottom:12px}
+.form-row label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.form-row input,.form-row select,.form-row textarea{width:100%}
+.form-row textarea{height:72px;resize:none}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:1.25rem;padding-top:1rem;border-top:0.5px solid var(--border)}
+.horse-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.horse-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem}
+.horse-avatar{width:44px;height:44px;border-radius:50%;background:var(--green-pale);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:10px}
+.horse-name{font-size:15px;font-weight:600;margin-bottom:10px}
+.horse-stat{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:5px}
+.horse-stat span:last-child{color:var(--text);font-weight:500}
+.horse-total{margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);font-size:13px;font-weight:600;color:var(--green-light);display:flex;justify-content:space-between}
+.rem-list{display:flex;flex-direction:column;gap:8px}
+.rem-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--radius);border:0.5px solid var(--border);background:var(--bg)}
+.rem-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.rem-dot.urgent{background:#E24B4A}.rem-dot.soon{background:#EF9F27}.rem-dot.ok{background:#639922}.rem-dot.overdue{background:#A32D2D}
+.rem-info{flex:1;min-width:0}
+.rem-info strong{display:block;font-size:13px;font-weight:500}
+.rem-info span{font-size:12px;color:var(--text2)}
+.rem-days{font-size:12px;font-weight:600;flex-shrink:0}
+.rem-days.urgent{color:#E24B4A}.rem-days.soon{color:#EF9F27}.rem-days.ok{color:#639922}.rem-days.overdue{color:#A32D2D}
+.empty{text-align:center;padding:3rem;color:var(--text2);font-size:14px}
+.chart-title{font-size:13px;font-weight:600;margin-bottom:1rem;color:var(--text2)}
+.bar-chart{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:flex;align-items:center;gap:10px;font-size:13px}
+.bar-row .label{width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2);flex-shrink:0}
+.bar-track{flex:1;height:22px;background:var(--bg2);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .5s ease}
+.bar-row .val{min-width:80px;text-align:right;font-weight:600;color:var(--text)}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar">
+    <h1><i class="ti ti-horse"></i>Tracker Koni</h1>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('wydatki')">Wydatki</button>
+      <button class="tab" onclick="switchTab('konie')">Konie</button>
+      <button class="tab" onclick="switchTab('przypomnienia')">Przypomnienia</button>
+      <button class="tab" onclick="switchTab('wykresy')">Wykresy</button>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Łącznie wydatki</div><div class="metric-value green" id="m-total">0 PLN</div></div>
+    <div class="metric"><div class="metric-label">Liczba koni</div><div class="metric-value" id="m-horses">0</div></div>
+    <div class="metric"><div class="metric-label">Weterynarz</div><div class="metric-value" id="m-vet">0 PLN</div></div>
+    <div class="metric"><div class="metric-label">Pilne zabiegi</div><div class="metric-value" id="m-urgent">0</div></div>
+  </div>
+
+  <div id="panel-wydatki" class="panel active">
+    <div class="card">
+      <div class="toolbar">
+        <input type="text" id="search" placeholder="Szukaj..." oninput="renderTable()">
+        <select id="filterCat" onchange="renderTable()">
+          <option value="">Wszystkie kategorie</option>
+          <option>Weterynarz</option><option>Kowal</option><option>Pasza / siano</option>
+        </select>
+        <select id="filterHorse" onchange="renderTable()"><option value="">Wszystkie konie</option></select>
+        <button class="btn" onclick="exportCSV()"><i class="ti ti-download"></i>Eksport CSV</button>
+        <button class="btn primary" onclick="openModal()"><i class="ti ti-plus"></i>Dodaj wydatek</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:100px">Data</th>
+              <th style="width:120px">Koń</th>
+              <th style="width:130px">Kategoria</th>
+              <th>Opis</th>
+              <th style="width:110px;text-align:right">Kwota</th>
+              <th style="width:100px">Nast. termin</th>
+              <th style="width:80px">Priorytet</th>
+              <th style="width:40px"></th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-konie" class="panel">
+    <div class="toolbar" style="margin-bottom:1rem">
+      <button class="btn primary" onclick="openHorseModal()"><i class="ti ti-plus"></i>Dodaj konia</button>
+    </div>
+    <div class="horse-grid" id="horse-grid"></div>
+  </div>
+
+  <div id="panel-przypomnienia" class="panel">
+    <div class="card">
+      <div class="rem-list" id="rem-list"></div>
+    </div>
+  </div>
+
+  <div id="panel-wykresy" class="panel">
+    <div class="card" style="margin-bottom:1rem">
+      <div class="chart-title">Wydatki per koń (PLN)</div>
+      <div class="bar-chart" id="chart-horses"></div>
+    </div>
+    <div class="card">
+      <div class="chart-title">Wydatki per kategoria</div>
+      <div class="bar-chart" id="chart-cats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal wydatek -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h2>Dodaj wydatek <button class="btn" onclick="closeModal()" style="padding:0 8px;height:28px"><i class="ti ti-x"></i></button></h2>
+    <div class="form-grid">
+      <div class="form-row"><label>Data *</label><input type="date" id="f-date"></div>
+      <div class="form-row"><label>Koń *</label><select id="f-horse"><option value="">Wybierz konia...</option></select></div>
+    </div>
+    <div class="form-row"><label>Kategoria *</label>
+      <select id="f-cat"><option value="">Wybierz...</option><option>Weterynarz</option><option>Kowal</option><option>Pasza / siano</option></select>
+    </div>
+    <div class="form-row"><label>Opis *</label><input type="text" id="f-desc" placeholder="np. Szczepienie, podkucie, siano..."></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Kwota (PLN) *</label><input type="number" id="f-amount" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="form-row"><label>Firma / Specjalista</label><input type="text" id="f-firm"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Następny termin</label><input type="date" id="f-next"></div>
+      <div class="form-row"><label>Priorytet</label>
+        <select id="f-prio"><option value="">-</option><option>Wysoki</option><option>Średni</option><option>Niski</option></select>
+      </div>
+    </div>
+    <div class="form-row"><label>Uwagi</label><textarea id="f-notes" placeholder="Opcjonalne..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Anuluj</button>
+      <button class="btn primary" onclick="saveEntry()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal koń -->
+<div class="modal-bg" id="horse-modal-bg" onclick="if(event.target===this)closeHorseModal()">
+  <div class="modal">
+    <h2>Dodaj konia <button class="btn" onclick="closeHorseModal()" style="padding:0 8px;height:28px"><i class="ti ti-x"></i></button></h2>
+    <div class="form-row"><label>Imię konia *</label><input type="text" id="h-name" placeholder="np. Burza"></div>
+    <div class="form-row"><label>Rasa</label><input type="text" id="h-breed" placeholder="np. Andaluz"></div>
+    <div class="form-grid">
+      <div class="form-row"><label>Rok urodzenia</label><input type="number" id="h-year" placeholder="2015" min="1990" max="2030"></div>
+      <div class="form-row"><label>Kolor sierści</label><input type="text" id="h-color" placeholder="np. Gniady"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeHorseModal()">Anuluj</button>
+      <button class="btn primary" onclick="saveHorse()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY='horse_tracker_v1';
+const HORSE_KEY='horse_tracker_horses_v1';
+function load(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')}catch{return[]}}
+function save(d){localStorage.setItem(STORAGE_KEY,JSON.stringify(d))}
+function loadHorses(){try{return JSON.parse(localStorage.getItem(HORSE_KEY)||'[]')}catch{return[]}}
+function saveHorses(h){localStorage.setItem(HORSE_KEY,JSON.stringify(h))}
+let data=load();
+let horses=loadHorses();
+function fmt(n){return Number(n).toLocaleString('pl-PL',{minimumFractionDigits:0,maximumFractionDigits:0})+' PLN'}
+function fmtDate(s){if(!s)return'—';return new Date(s).toLocaleDateString('pl-PL',{day:'2-digit',month:'2-digit',year:'numeric'})}
+function daysTo(s){if(!s)return null;return Math.round((new Date(s)-new Date())/86400000)}
+function updateMetrics(){
+  const total=data.reduce((a,r)=>a+Number(r.amount),0);
+  const hs=new Set([...horses.map(h=>h.name),...data.map(r=>r.horse)]).size;
+  const vet=data.filter(r=>r.cat==='Weterynarz').reduce((a,r)=>a+Number(r.amount),0);
+  const urgent=data.filter(r=>{const d=daysTo(r.next);return d!==null&&d<=30&&d>=0}).length;
+  document.getElementById('m-total').textContent=fmt(total);
+  document.getElementById('m-horses').textContent=hs;
+  document.getElementById('m-vet').textContent=fmt(vet);
+  document.getElementById('m-urgent').textContent=urgent;
+}
+function catBadge(c){const m={'Weterynarz':'badge-vet','Kowal':'badge-farrier','Pasza / siano':'badge-feed'};return`<span class="badge ${m[c]||''}">${c}</span>`}
+function prioBadge(p){if(!p)return'—';const m={'Wysoki':'badge-high','Średni':'badge-med','Niski':'badge-low'};return`<span class="badge ${m[p]||''}">${p}</span>`}
+function renderTable(){
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  const cat=document.getElementById('filterCat').value;
+  const horse=document.getElementById('filterHorse').value;
+  let rows=data.filter(r=>{
+    if(cat&&r.cat!==cat)return false;
+    if(horse&&r.horse!==horse)return false;
+    if(q&&!JSON.stringify(r).toLowerCase().includes(q))return false;
+    return true;
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+  const tb=document.getElementById('table-body');
+  if(!rows.length){tb.innerHTML=`<tr><td colspan="8" class="empty">Brak wyników</td></tr>`;return}
+  tb.innerHTML=rows.map(r=>`<tr>
+    <td>${fmtDate(r.date)}</td><td title="${r.horse}">${r.horse}</td>
+    <td>${catBadge(r.cat)}</td><td title="${r.desc}">${r.desc}</td>
+    <td class="amount">${Number(r.amount).toLocaleString('pl-PL',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+    <td>${r.next?fmtDate(r.next):'—'}</td><td>${prioBadge(r.prio)}</td>
+    <td><button class="btn" style="padding:0 8px;height:28px;border:none;background:transparent" onclick="deleteEntry(${r.id})" title="Usuń"><i class="ti ti-trash" style="font-size:14px;color:#999"></i></button></td>
+  </tr>`).join('');
+}
+function renderHorseFilter(){
+  const allNames=[...new Set([...horses.map(h=>h.name),...data.map(r=>r.horse)])];
+  document.getElementById('filterHorse').innerHTML='<option value="">Wszystkie konie</option>'+allNames.map(n=>`<option>${n}</option>`).join('');
+  document.getElementById('f-horse').innerHTML='<option value="">Wybierz konia...</option>'+allNames.map(n=>`<option>${n}</option>`).join('');
+}
+function renderHorses(){
+  const allNames=[...new Set([...horses.map(h=>h.name),...data.map(r=>r.horse)])];
+  const emojis=['🐴','🦄','🐎','🏇','🐴','🦄','🐎'];
+  document.getElementById('horse-grid').innerHTML=allNames.map((name,i)=>{
+    const h=horses.find(h=>h.name===name)||{};
+    const vet=data.filter(r=>r.horse===name&&r.cat==='Weterynarz').reduce((a,r)=>a+Number(r.amount),0);
+    const farrier=data.filter(r=>r.horse===name&&r.cat==='Kowal').reduce((a,r)=>a+Number(r.amount),0);
+    const feed=data.filter(r=>r.horse===name&&r.cat==='Pasza / siano').reduce((a,r)=>a+Number(r.amount),0);
+    return`<div class="horse-card">
+      <div class="horse-avatar">${emojis[i%emojis.length]}</div>
+      <div class="horse-name">${name}${h.breed?` <span style="font-size:11px;color:var(--text2);font-weight:400">${h.breed}</span>`:''}</div>
+      ${h.year?`<div class="horse-stat"><span>Rok ur.</span><span>${h.year}</span></div>`:''}
+      ${h.color?`<div class="horse-stat"><span>Kolor</span><span>${h.color}</span></div>`:''}
+      <div class="horse-stat"><span>Weterynarz</span><span>${fmt(vet)}</span></div>
+      <div class="horse-stat"><span>Kowal</span><span>${fmt(farrier)}</span></div>
+      <div class="horse-stat"><span>Pasza</span><span>${fmt(feed)}</span></div>
+      <div class="horse-total"><span>Łącznie</span><span>${fmt(vet+farrier+feed)}</span></div>
+    </div>`
+  }).join('');
+}
+function renderReminders(){
+  const items=data.filter(r=>r.next).map(r=>({...r,days:daysTo(r.next)})).sort((a,b)=>a.days-b.days);
+  const list=document.getElementById('rem-list');
+  if(!items.length){list.innerHTML=`<div class="empty">Brak zaplanowanych zabiegów</div>`;return}
+  list.innerHTML=items.map(r=>{
+    let cls='ok',label=`Za ${r.days} dni`;
+    if(r.days<0){cls='overdue';label=`${Math.abs(r.days)} dni temu`}
+    else if(r.days<=14){cls='urgent';label=`Za ${r.days} dni`}
+    else if(r.days<=60){cls='soon'}
+    return`<div class="rem-item">
+      <div class="rem-dot ${cls}"></div>
+      <div class="rem-info"><strong>${r.horse} — ${r.desc}</strong><span>${catBadge(r.cat)}${r.firm?' · '+r.firm:''}</span></div>
+      <div class="rem-days ${cls}">${label}</div>
+    </div>`
+  }).join('');
+}
+function renderCharts(){
+  const allNames=[...new Set([...horses.map(h=>h.name),...data.map(r=>r.horse)])];
+  const totals=allNames.map(n=>({name:n,val:data.filter(r=>r.horse===n).reduce((a,r)=>a+Number(r.amount),0)})).sort((a,b)=>b.val-a.val);
+  const max1=totals[0]?.val||1;
+  const colors=['#2C5F2E','#639922','#97BC62','#C0DD97','#5A8A5C','#3B6D11','#27500A'];
+  document.getElementById('chart-horses').innerHTML=totals.map((t,i)=>`
+    <div class="bar-row">
+      <div class="label" title="${t.name}">${t.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(t.val/max1*100)}%;background:${colors[i%colors.length]}"></div></div>
+      <div class="val">${fmt(t.val)}</div>
+    </div>`).join('');
+  const cats=['Weterynarz','Kowal','Pasza / siano'];
+  const catColors=['#185FA5','#854F0B','#3B6D11'];
+  const catTotals=cats.map(c=>({name:c,val:data.filter(r=>r.cat===c).reduce((a,r)=>a+Number(r.amount),0)}));
+  const max2=Math.max(...catTotals.map(c=>c.val),1);
+  document.getElementById('chart-cats').innerHTML=catTotals.map((t,i)=>`
+    <div class="bar-row">
+      <div class="label">${t.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(t.val/max2*100)}%;background:${catColors[i]}"></div></div>
+      <div class="val">${fmt(t.val)}</div>
+    </div>`).join('');
+}
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',['wydatki','konie','przypomnienia','wykresy'][i]===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+t).classList.add('active');
+  if(t==='konie')renderHorses();
+  if(t==='przypomnienia')renderReminders();
+  if(t==='wykresy')renderCharts();
+}
+function openModal(){document.getElementById('f-date').value=new Date().toISOString().split('T')[0];document.getElementById('modal-bg').classList.add('open')}
+function closeModal(){document.getElementById('modal-bg').classList.remove('open')}
+function openHorseModal(){document.getElementById('horse-modal-bg').classList.add('open')}
+function closeHorseModal(){document.getElementById('horse-modal-bg').classList.remove('open')}
+function saveEntry(){
+  const date=document.getElementById('f-date').value;
+  const horse=document.getElementById('f-horse').value;
+  const cat=document.getElementById('f-cat').value;
+  const desc=document.getElementById('f-desc').value.trim();
+  const amount=parseFloat(document.getElementById('f-amount').value);
+  if(!date||!horse||!cat||!desc||isNaN(amount)){alert('Wypełnij wymagane pola (*)');return}
+  data.push({id:Date.now(),date,horse,cat,desc,firm:document.getElementById('f-firm').value.trim(),amount,invoice:'',next:document.getElementById('f-next').value,prio:document.getElementById('f-prio').value,notes:document.getElementById('f-notes').value.trim()});
+  save(data);closeModal();
+  ['f-date','f-horse','f-cat','f-desc','f-amount','f-firm','f-next','f-prio','f-notes'].forEach(id=>{const el=document.getElementById(id);el.tagName==='SELECT'?el.selectedIndex=0:el.value=''});
+  renderHorseFilter();renderTable();updateMetrics();
+}
+function saveHorse(){
+  const name=document.getElementById('h-name').value.trim();
+  if(!name){alert('Podaj imię konia');return}
+  if(horses.find(h=>h.name===name)){alert('Koń o tej nazwie już istnieje');return}
+  horses.push({id:Date.now(),name,breed:document.getElementById('h-breed').value.trim(),year:document.getElementById('h-year').value,color:document.getElementById('h-color').value.trim()});
+  saveHorses(horses);closeHorseModal();
+  ['h-name','h-breed','h-year','h-color'].forEach(id=>document.getElementById(id).value='');
+  renderHorseFilter();renderHorses();updateMetrics();
+}
+function deleteEntry(id){if(!confirm('Usunąć ten wpis?'))return;data=data.filter(r=>r.id!==id);save(data);renderTable();updateMetrics()}
+function exportCSV(){
+  const headers=['Data','Koń','Kategoria','Opis','Firma','Kwota (PLN)','Następny termin','Priorytet','Uwagi'];
+  const rows=data.map(r=>[r.date,r.horse,r.cat,r.desc,r.firm,r.amount,r.next,r.prio,r.notes].map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(','));
+  const csv='\uFEFF'+[headers.join(','),...rows].join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='konie_wydatki_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+renderHorseFilter();renderTable();updateMetrics();
+</script>
+</body>
+</html>
